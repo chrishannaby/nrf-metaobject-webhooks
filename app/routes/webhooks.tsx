@@ -2,9 +2,8 @@ import type { ActionFunctionArgs } from "@remix-run/node";
 import { client } from "~/trigger.server";
 import crypto from "crypto";
 import {
-  createdWebhookSchema,
+  createdOrUpdatedWebhookSchema,
   deletedWebhookSchema,
-  updatedWebhookSchema,
 } from "~/utils/webhooks";
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -18,7 +17,7 @@ export async function action({ request }: ActionFunctionArgs) {
   let data;
   switch (topic) {
     case "metaobjects/create":
-      data = createdWebhookSchema.parse(rawData);
+      data = createdOrUpdatedWebhookSchema.parse(rawData);
       await client.sendEvent({
         name: "drop.created",
         payload: data,
@@ -32,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
       break;
     case "metaobjects/update":
-      data = updatedWebhookSchema.parse(rawData);
+      data = createdOrUpdatedWebhookSchema.parse(rawData);
       await client.sendEvent({
         name: "drop.updated",
         payload: data,

@@ -7,12 +7,10 @@ const baseWebhookSchema = z.object({
 
 export const deletedWebhookSchema = baseWebhookSchema;
 
-export const createdWebhookSchema = baseWebhookSchema.extend({
+export const createdOrUpdatedWebhookSchema = baseWebhookSchema.extend({
   fields: z.object({
     name: z.string(),
     start_time: z.coerce.date(),
     end_time: z.union([z.null(), z.coerce.date()]),
   }),
 });
-
-export const updatedWebhookSchema = createdWebhookSchema;

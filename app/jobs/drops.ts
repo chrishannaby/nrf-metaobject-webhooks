@@ -1,9 +1,8 @@
 import { eventTrigger } from "@trigger.dev/sdk";
 import { client } from "~/trigger.server";
 import {
-  createdWebhookSchema,
+  createdOrUpdatedWebhookSchema,
   deletedWebhookSchema,
-  updatedWebhookSchema,
 } from "~/utils/webhooks";
 import { z } from "zod";
 import { db } from "~/drizzle/config.server";
@@ -33,7 +32,7 @@ export const created = client.defineJob({
   version: "0.0.1",
   trigger: eventTrigger({
     name: "drop.created",
-    schema: createdWebhookSchema,
+    schema: createdOrUpdatedWebhookSchema,
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(`Drop Created: ${payload.handle}`);
@@ -127,7 +126,7 @@ export const updated = client.defineJob({
   version: "0.0.1",
   trigger: eventTrigger({
     name: "drop.updated",
-    schema: updatedWebhookSchema,
+    schema: createdOrUpdatedWebhookSchema,
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(`Drop Updated: ${payload.handle}`);
@@ -138,97 +137,105 @@ export const updated = client.defineJob({
         .where(eq(drops.shopifyId, payload.id));
       return rows.pop();
     });
-    if (drop) {
-      const newStartTime = payload.fields.start_time;
-      const newEndTime = payload.fields.end_time;
-      const previousStartTime = new Date(drop.startTime);
-      const previousEndTime = drop.endTime ? new Date(drop.endTime) : null;
-      if (newStartTime === previousStartTime && newEndTime === previousEndTime)
-        return;
+    if (!drop) {
+      await io.logger.info(
+        `Drop not found in db: ${payload.handle}, creating new drop`
+      );
+      await io.sendEvent("drop.created", {
+        name: "drop.created",
+        payload,
+      });
+      return;
+    }
 
-      const now = new Date();
+    const newStartTime = payload.fields.start_time;
+    const newEndTime = payload.fields.end_time;
+    const previousStartTime = new Date(drop.startTime);
+    const previousEndTime = drop.endTime ? new Date(drop.endTime) : null;
+    if (newStartTime === previousStartTime && newEndTime === previousEndTime)
+      return;
 
-      const dropWasActive =
-        isBefore(previousStartTime, now) &&
-        (!previousEndTime || isAfter(previousEndTime, now));
-      const dropNowActive =
-        isBefore(newStartTime, now) &&
-        (!newEndTime || isAfter(newEndTime, now));
+    const now = new Date();
 
-      // cancel any existing events
-      if (drop.startedEventId) {
-        await io.cancelEvent("cancel-drop-started", drop.startedEventId);
-      }
-      if (drop.endedEventId) {
-        await io.cancelEvent("cancel-drop-ended", drop.endedEventId);
-      }
+    const dropWasActive =
+      isBefore(previousStartTime, now) &&
+      (!previousEndTime || isAfter(previousEndTime, now));
+    const dropNowActive =
+      isBefore(newStartTime, now) && (!newEndTime || isAfter(newEndTime, now));
 
-      if (dropWasActive && !dropNowActive) {
-        await io.sendEvent("drop.ended", {
-          name: "drop.ended",
-          payload: {
-            dropId: payload.id,
-          },
-        });
-      }
+    // cancel any existing events
+    if (drop.startedEventId) {
+      await io.cancelEvent("cancel-drop-started", drop.startedEventId);
+    }
+    if (drop.endedEventId) {
+      await io.cancelEvent("cancel-drop-ended", drop.endedEventId);
+    }
 
-      if (!dropWasActive && dropNowActive) {
-        await io.sendEvent("drop.started", {
+    if (dropWasActive && !dropNowActive) {
+      await io.sendEvent("drop.ended", {
+        name: "drop.ended",
+        payload: {
+          dropId: payload.id,
+        },
+      });
+    }
+
+    if (!dropWasActive && dropNowActive) {
+      await io.sendEvent("drop.started", {
+        name: "drop.started",
+        payload: {
+          dropId: payload.id,
+        },
+      });
+    }
+
+    let newDropStartedEventId: string | null;
+
+    if (isAfter(newStartTime, now)) {
+      const newDropStartedEvent = await io.sendEvent(
+        "drop.started",
+        {
           name: "drop.started",
           payload: {
             dropId: payload.id,
           },
-        });
-      }
-
-      let newDropStartedEventId: string | null;
-
-      if (isAfter(newStartTime, now)) {
-        const newDropStartedEvent = await io.sendEvent(
-          "drop.started",
-          {
-            name: "drop.started",
-            payload: {
-              dropId: payload.id,
-            },
-          },
-          {
-            deliverAt: newStartTime,
-          }
-        );
-        newDropStartedEventId = newDropStartedEvent.id;
-      }
-
-      let newDropEndedEventId: string | null;
-
-      if (newEndTime && isAfter(newEndTime, now)) {
-        const newDropEndedEvent = await io.sendEvent(
-          "drop.ended",
-          {
-            name: "drop.ended",
-            payload: {
-              dropId: payload.id,
-            },
-          },
-          {
-            deliverAt: newEndTime,
-          }
-        );
-        newDropEndedEventId = newDropEndedEvent.id;
-      }
-
-      await io.runTask("update-drop-in-db", async (task) => {
-        await db
-          .update(drops)
-          .set({
-            startedEventId: newDropStartedEventId ?? drop.startedEventId,
-            startTime: newStartTime.toISOString(),
-            endedEventId: newDropEndedEventId ?? drop.endedEventId,
-            endTime: newEndTime?.toISOString(),
-          })
-          .where(eq(drops.shopifyId, payload.id));
-      });
+        },
+        {
+          deliverAt: newStartTime,
+        }
+      );
+      newDropStartedEventId = newDropStartedEvent.id;
     }
+
+    let newDropEndedEventId: string | null;
+
+    if (newEndTime && isAfter(newEndTime, now)) {
+      const newDropEndedEvent = await io.sendEvent(
+        "drop.ended",
+        {
+          name: "drop.ended",
+          payload: {
+            dropId: payload.id,
+          },
+        },
+        {
+          deliverAt: newEndTime,
+        }
+      );
+      newDropEndedEventId = newDropEndedEvent.id;
+    }
+
+    await io.runTask("update-drop-in-db", async (task) => {
+      await db
+        .update(drops)
+        .set({
+          startedEventId: newDropStartedEventId ?? drop.startedEventId,
+          startTime: newStartTime.toISOString(),
+          endedEventId: newDropEndedEventId ?? drop.endedEventId,
+          endTime: newEndTime?.toISOString(),
+        })
+        .where(eq(drops.shopifyId, payload.id));
+    });
   },
 });
 
