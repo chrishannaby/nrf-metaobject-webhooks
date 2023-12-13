@@ -9,7 +9,9 @@
     "dev:remix": "remix dev",
     "dev:trigger": "npx @trigger.dev/cli dev",
     "start": "remix-serve ./build/index.js",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "db:migrations": "drizzle-kit generate:sqlite --out ./app/drizzle/migrations --schema ./app/drizzle/schema.server.ts",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@remix-run/css-bundle": "^2.3.1",
@@ -19,6 +21,9 @@
     "@trigger.dev/react": "^2.3.4",
     "@trigger.dev/remix": "^2.3.4",
     "@trigger.dev/sdk": "^2.3.4",
+    "better-sqlite3": "^9.2.2",
+    "date-fns": "^2.30.0",
+    "drizzle-orm": "^0.29.1",
     "isbot": "^3.6.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
