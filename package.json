@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "remix build",
-    "dev": "remix dev --manual",
+    "dev": "concurrently --kill-others npm:dev:*",
+    "dev:remix": "remix dev",
+    "dev:trigger": "npx @trigger.dev/cli dev",
     "start": "remix-serve ./build/index.js",
     "typecheck": "tsc"
   },
@@ -14,6 +16,9 @@
     "@remix-run/node": "^2.3.1",
     "@remix-run/react": "^2.3.1",
     "@remix-run/serve": "^2.3.1",
+    "@trigger.dev/react": "^2.3.4",
+    "@trigger.dev/remix": "^2.3.4",
+    "@trigger.dev/sdk": "^2.3.4",
     "isbot": "^3.6.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -21,12 +26,18 @@
   "devDependencies": {
     "@remix-run/dev": "^2.3.1",
     "@remix-run/eslint-config": "^2.3.1",
+    "@types/better-sqlite3": "^7.6.8",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
+    "concurrently": "^8.2.2",
+    "drizzle-kit": "^0.20.6",
     "eslint": "^8.38.0",
     "typescript": "^5.1.6"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "trigger.dev": {
+    "endpointId": "nrf-2024-eY_a"
   }
 }
