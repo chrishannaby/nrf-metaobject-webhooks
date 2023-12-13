@@ -9,6 +9,7 @@ import { db } from "~/drizzle/config.server";
 import { drops } from "~/drizzle/schema.server";
 import { eq } from "drizzle-orm";
 import { isBefore, isAfter } from "date-fns";
+import { executeFlowTrigger, getDrop } from "~/utils/adminApi";
 
 export const getEvent = client.defineJob({
   id: "get-event",
@@ -239,6 +240,26 @@ export const updated = client.defineJob({
   },
 });
 
+const productIdRegex = /^gid:\/\/shopify\/Product\/(\d+)$/;
+
+function parseProductId(productId: string) {
+  const match = productId.match(productIdRegex);
+  if (!match) {
+    return null;
+  }
+  return match[1];
+}
+
+function extractProductIds(products: string[]) {
+  return products.flatMap((product) => {
+    const parsed = parseProductId(product);
+    if (!parsed) {
+      return [];
+    }
+    return [{ productId: parsed }];
+  });
+}
+
 export const sendDropStartedFlowTrigger = client.defineJob({
   id: "send-drop-started-flow-trigger",
   name: "Send Drop Started Flow Trigger",
@@ -250,7 +271,23 @@ export const sendDropStartedFlowTrigger = client.defineJob({
     }),
   }),
   run: async (payload, io, ctx) => {
-    await io.logger.info("Send Drop Started Flow Trigger");
+    await io.logger.info(
+      `Send Drop Started Flow Trigger for ${payload.dropId}`
+    );
+
+    await io.runTask("fetch-drop", async (task) => {
+      const drop = await getDrop(payload.dropId);
+      await io.logger.info(`Got drop: ${JSON.stringify(drop)}`);
+      await io.runTask("send-flow-trigger", async (task) => {
+        await executeFlowTrigger("drop-started", {
+          Drop: {
+            id: drop.id,
+            name: drop.name,
+            products: extractProductIds(drop.products),
+          },
+        });
+      });
+    });
   },
 });
 
@@ -265,6 +302,20 @@ export const sendDropEndedFlowTrigger = client.defineJob({
     }),
   }),
   run: async (payload, io, ctx) => {
-    await io.logger.info("Send Drop Ended Flow Trigger");
+    await io.logger.info(`Send Drop Ended Flow Trigger for ${payload.dropId}`);
+    await io.runTask("fetch-drop", async (task) => {
+      const drop = await getDrop(payload.dropId);
+      await io.logger.info(`Got drop: ${JSON.stringify(drop)}`);
+      await io.runTask("send-flow-trigger", async (task) => {
+        const repsonse = await executeFlowTrigger("drop-ended", {
+          Drop: {
+            id: drop.id,
+            name: drop.name,
+            products: extractProductIds(drop.products),
+          },
+        });
+        return repsonse;
+      });
+    });
   },
 });
