@@ -168,7 +168,7 @@ export async function executeFlowTrigger(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Access-Token": process.env.FLOW_TRIGGER_ACCESS_TOKEN || "",
+        "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN || "",
       },
       body: JSON.stringify({
         query: flowTriggerQuery,
