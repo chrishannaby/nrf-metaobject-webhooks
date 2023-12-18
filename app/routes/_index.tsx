@@ -2,7 +2,7 @@ import { json, type MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { db } from "~/drizzle/config.server";
 import { drops } from "~/drizzle/schema.server";
-import { parseProductId } from "~/utils/adminApi";
+import { parseMetaobjectId } from "~/utils/adminApi";
 
 export const meta: MetaFunction = () => {
   return [{ title: "NRF Webhooks" }];
@@ -11,7 +11,7 @@ export const meta: MetaFunction = () => {
 export async function loader() {
   const rows = (await db.select().from(drops)).map((row) => {
     return {
-      url: `https://admin.shopify.com/store/230154-2/content/entries/drop/${parseProductId(
+      url: `https://admin.shopify.com/store/230154-2/content/entries/drop/${parseMetaobjectId(
         row.shopifyId
       )}`,
       id: row.shopifyId,

@@ -192,3 +192,13 @@ export function parseProductId(productId: string) {
   }
   return match[1];
 }
+
+const metaobjectIdRegex = /^gid:\/\/shopify\/Metaobject\/(\d+)$/;
+
+export function parseMetaobjectId(metaobjectId: string) {
+  const match = metaobjectId.match(metaobjectIdRegex);
+  if (!match) {
+    return null;
+  }
+  return match[1];
+}
