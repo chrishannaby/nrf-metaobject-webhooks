@@ -32,11 +32,11 @@ export async function loader() {
 export default function Index() {
   const { drops } = useLoaderData<typeof loader>();
 
-  const [currentTime, setCurrentTime] = useState(new Date().toUTCString());
+  const [currentTime, setCurrentTime] = useState(new Date().toISOString());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(new Date().toUTCString());
+      setCurrentTime(new Date().toISOString());
     }, 1000);
 
     return () => {
