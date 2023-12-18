@@ -182,3 +182,13 @@ export async function executeFlowTrigger(
   const { data } = await response.json();
   console.log(data.flowTriggerReceive.userErrors);
 }
+
+const productIdRegex = /^gid:\/\/shopify\/Product\/(\d+)$/;
+
+export function parseProductId(productId: string) {
+  const match = productId.match(productIdRegex);
+  if (!match) {
+    return null;
+  }
+  return match[1];
+}
