@@ -153,13 +153,15 @@ export const updated = client.defineJob({
       `previousEndTime: ${previousEndTime?.toISOString()} newEndTime: ${newEndTime?.toISOString()}`
     );
 
-    const now = new Date();
+    const now = new Date(Date.now());
 
     const dropWasActive =
       isBefore(previousStartTime, now) &&
       (!previousEndTime || isAfter(previousEndTime, now));
+    await io.logger.info(`dropWasActive: ${dropWasActive}`);
     const dropNowActive =
       isBefore(newStartTime, now) && (!newEndTime || isAfter(newEndTime, now));
+    await io.logger.info(`dropNowActive: ${dropNowActive}`);
 
     // cancel any existing events
     if (drop.startedEventId) {
