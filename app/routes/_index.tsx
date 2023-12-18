@@ -10,7 +10,7 @@ export const meta: MetaFunction = () => {
 export async function loader() {
   const rows = (await db.select().from(drops)).map((row) => {
     return {
-      id: row.id,
+      id: row.shopifyId,
       startTime: row.startTime,
       endTime: row.endTime,
     };
