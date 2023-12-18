@@ -1,5 +1,6 @@
 import { json, type MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { useEffect, useState } from "react";
 import { db } from "~/drizzle/config.server";
 import { drops } from "~/drizzle/schema.server";
 import { getDrop, parseMetaobjectId } from "~/utils/adminApi";
@@ -30,9 +31,23 @@ export async function loader() {
 
 export default function Index() {
   const { drops } = useLoaderData<typeof loader>();
+
+  const [currentTime, setCurrentTime] = useState(new Date().toUTCString());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date().toUTCString());
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <h1>NRF Webhooks</h1>
+      <p>Current UTC time: {currentTime}</p>
       <h2>Drops</h2>
       <ul>
         {drops.map((drop) => (
