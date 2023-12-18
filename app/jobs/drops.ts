@@ -11,22 +11,6 @@ import { eq } from "drizzle-orm";
 import { isBefore, isAfter } from "date-fns";
 import { executeFlowTrigger, getDrop, parseProductId } from "~/utils/adminApi";
 
-export const getEvent = client.defineJob({
-  id: "get-event",
-  name: "Get Event",
-  version: "0.0.1",
-  trigger: eventTrigger({
-    name: "get-event",
-    schema: z.object({
-      eventId: z.string(),
-    }),
-  }),
-  run: async (payload, io, ctx) => {
-    const event = await io.getEvent("get-event", payload.eventId);
-    await io.logger.info(`Got Event: ${event.name}`);
-  },
-});
-
 export const created = client.defineJob({
   id: "drop-created",
   name: "Drop Created",
@@ -41,7 +25,7 @@ export const created = client.defineJob({
     const dropStartedEvent = await io.sendEvent(
       "drop.started",
       {
-        name: "drop.started",
+        name: `drop.started ${payload.fields.start_time.toISOString()}`,
         payload: {
           dropId: payload.id,
         },
@@ -52,7 +36,7 @@ export const created = client.defineJob({
     );
     const dropEndedEvent = payload.fields.end_time
       ? await io.sendEvent(
-          "drop.ended",
+          `drop.ended ${payload.fields.end_time.toISOString()}`,
           {
             name: "drop.ended",
             payload: {
@@ -95,10 +79,16 @@ export const deleted = client.defineJob({
     });
     if (drop) {
       if (drop.startedEventId) {
-        await io.cancelEvent("cancel-drop-started", drop.startedEventId);
+        await io.cancelEvent(
+          `cancel-drop-started ${drop.startedEventId}`,
+          drop.startedEventId
+        );
       }
       if (drop.endedEventId) {
-        await io.cancelEvent("cancel-drop-ended", drop.endedEventId);
+        await io.cancelEvent(
+          `cancel-drop-ended ${drop.endedEventId}`,
+          drop.endedEventId
+        );
       }
       const previousStartTime = new Date(drop.startTime);
       const previousEndTime = drop.endTime ? new Date(drop.endTime) : null;
@@ -166,14 +156,20 @@ export const updated = client.defineJob({
 
     // cancel any existing events
     if (drop.startedEventId) {
-      await io.cancelEvent("cancel-drop-started", drop.startedEventId);
+      await io.cancelEvent(
+        `cancel-drop-started ${drop.startedEventId}`,
+        drop.startedEventId
+      );
     }
     if (drop.endedEventId) {
-      await io.cancelEvent("cancel-drop-ended", drop.endedEventId);
+      await io.cancelEvent(
+        `cancel-drop-ended ${drop.endedEventId}`,
+        drop.endedEventId
+      );
     }
 
     if (dropWasActive && !dropNowActive) {
-      await io.sendEvent("drop.ended", {
+      await io.sendEvent(`drop.ended ${new Date().toISOString()}`, {
         name: "drop.ended",
         payload: {
           dropId: payload.id,
@@ -182,7 +178,7 @@ export const updated = client.defineJob({
     }
 
     if (!dropWasActive && dropNowActive) {
-      await io.sendEvent("drop.started", {
+      await io.sendEvent(`drop.started ${new Date().toISOString()}`, {
         name: "drop.started",
         payload: {
           dropId: payload.id,
@@ -194,7 +190,7 @@ export const updated = client.defineJob({
 
     if (isAfter(newStartTime, now)) {
       const newDropStartedEvent = await io.sendEvent(
-        "drop.started",
+        `drop.started ${newStartTime.toISOString()}`,
         {
           name: "drop.started",
           payload: {
@@ -212,7 +208,7 @@ export const updated = client.defineJob({
 
     if (newEndTime && isAfter(newEndTime, now)) {
       const newDropEndedEvent = await io.sendEvent(
-        "drop.ended",
+        `drop.ended ${newEndTime.toISOString()}`,
         {
           name: "drop.ended",
           payload: {
