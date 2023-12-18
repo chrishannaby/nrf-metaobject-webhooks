@@ -8,6 +8,9 @@ primary_region = "ord"
 
 [build]
 
+[env]
+  DATABASE_URL = "file:/data/sqlite.db"
+
 [mounts]
   source = "data"
   destination = "/data"
