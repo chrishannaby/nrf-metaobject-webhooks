@@ -2,24 +2,30 @@ import { json, type MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { db } from "~/drizzle/config.server";
 import { drops } from "~/drizzle/schema.server";
-import { parseMetaobjectId } from "~/utils/adminApi";
+import { getDrop, parseMetaobjectId } from "~/utils/adminApi";
 
 export const meta: MetaFunction = () => {
   return [{ title: "NRF Webhooks" }];
 };
 
 export async function loader() {
-  const rows = (await db.select().from(drops)).map((row) => {
-    return {
-      url: `https://admin.shopify.com/store/230154-2/content/entries/drop/${parseMetaobjectId(
-        row.shopifyId
-      )}`,
-      id: row.shopifyId,
-      startTime: row.startTime,
-      endTime: row.endTime,
-    };
-  });
-  return json({ drops: rows });
+  const rows = await db.select().from(drops);
+  const data = await Promise.all(
+    rows.map(async (row) => {
+      const drop = await getDrop(row.shopifyId);
+      return {
+        name: drop.name,
+        url: `https://admin.shopify.com/store/230154-2/content/entries/drop/${parseMetaobjectId(
+          row.shopifyId
+        )}`,
+        id: row.shopifyId,
+        startTime: row.startTime,
+        endTime: row.endTime,
+      };
+    })
+  );
+
+  return json({ drops: data });
 }
 
 export default function Index() {
@@ -31,7 +37,7 @@ export default function Index() {
       <ul>
         {drops.map((drop) => (
           <li key={drop.id}>
-            <a href={drop.url}>{drop.id}</a>: {drop.startTime}{" "}
+            <a href={drop.url}>{drop.name}</a>: {drop.startTime}{" "}
             {drop.endTime && <span>- {drop.endTime}</span>}
           </li>
         ))}
