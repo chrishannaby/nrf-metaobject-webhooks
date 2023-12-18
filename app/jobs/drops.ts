@@ -146,6 +146,13 @@ export const updated = client.defineJob({
     if (newStartTime === previousStartTime && newEndTime === previousEndTime)
       return;
 
+    await io.logger.info(
+      `previousStartTime: ${previousStartTime.toISOString()} newStartTime: ${newStartTime.toISOString()}`
+    );
+    await io.logger.info(
+      `previousEndTime: ${previousEndTime?.toISOString()} newEndTime: ${newEndTime?.toISOString()}`
+    );
+
     const now = new Date();
 
     const dropWasActive =
