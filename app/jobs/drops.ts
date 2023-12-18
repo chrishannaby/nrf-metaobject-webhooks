@@ -278,6 +278,10 @@ export const sendDropStartedFlowTrigger = client.defineJob({
     await io.runTask("fetch-drop", async (task) => {
       const drop = await getDrop(payload.dropId);
       await io.logger.info(`Got drop: ${JSON.stringify(drop)}`);
+      if (!drop.products.length) {
+        await io.logger.info(`Drop has no products, skipping`);
+        return;
+      }
       await io.runTask("send-flow-trigger", async (task) => {
         await executeFlowTrigger("drop-started", {
           Drop: {
@@ -306,6 +310,10 @@ export const sendDropEndedFlowTrigger = client.defineJob({
     await io.runTask("fetch-drop", async (task) => {
       const drop = await getDrop(payload.dropId);
       await io.logger.info(`Got drop: ${JSON.stringify(drop)}`);
+      if (!drop.products.length) {
+        await io.logger.info(`Drop has no products, skipping`);
+        return;
+      }
       await io.runTask("send-flow-trigger", async (task) => {
         const repsonse = await executeFlowTrigger("drop-ended", {
           Drop: {
