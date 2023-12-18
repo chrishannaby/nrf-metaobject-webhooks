@@ -9,7 +9,7 @@ import { db } from "~/drizzle/config.server";
 import { drops } from "~/drizzle/schema.server";
 import { eq } from "drizzle-orm";
 import { isBefore, isAfter } from "date-fns";
-import { executeFlowTrigger, getDrop } from "~/utils/adminApi";
+import { executeFlowTrigger, getDrop, parseProductId } from "~/utils/adminApi";
 
 export const getEvent = client.defineJob({
   id: "get-event",
@@ -239,16 +239,6 @@ export const updated = client.defineJob({
     });
   },
 });
-
-const productIdRegex = /^gid:\/\/shopify\/Product\/(\d+)$/;
-
-function parseProductId(productId: string) {
-  const match = productId.match(productIdRegex);
-  if (!match) {
-    return null;
-  }
-  return match[1];
-}
 
 function extractProductIds(products: string[]) {
   return products.flatMap((product) => {
