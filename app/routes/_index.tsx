@@ -37,8 +37,11 @@ export default function Index() {
       <ul>
         {drops.map((drop) => (
           <li key={drop.id}>
-            <a href={drop.url}>{drop.name}</a>: {drop.startTime}{" "}
-            {drop.endTime && <span>- {drop.endTime}</span>}
+            <a href={drop.url}>{drop.name}</a>
+            <ul>
+              {drop.startTime && <li>Starts at: {drop.startTime}</li>}
+              {drop.endTime && <li>Ends at: {drop.endTime}</li>}
+            </ul>
           </li>
         ))}
       </ul>
