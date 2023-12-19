@@ -14,9 +14,9 @@ import {
   executeFlowTrigger,
   getDrop,
   parseProductId,
-  updateKlayvioListId,
+  updateKlaviyoListId,
 } from "~/utils/adminApi";
-import { createTemplate, createList } from "~/utils/klayvio";
+import { createTemplate, createList } from "~/utils/klaviyo";
 
 export const created = client.defineJob({
   id: "drop-created",
@@ -65,15 +65,15 @@ export const created = client.defineJob({
       });
     });
 
-    const klayvioListId = await io.runTask(
-      "create-klayvio-list",
+    const klaviyoListId = await io.runTask(
+      "create-klaviyo-list",
       async (task) => {
         return await createList(payload.handle);
       }
     );
-    await io.logger.info(`Created Klayvio List: ${klayvioListId}`);
-    await io.runTask("update-klayvio-list-id", async (task) => {
-      await updateKlayvioListId(payload.id, klayvioListId);
+    await io.logger.info(`Created Klaviyo List: ${klaviyoListId}`);
+    await io.runTask("update-klaviyo-list-id", async (task) => {
+      await updateKlaviyoListId(payload.id, klaviyoListId);
     });
   },
 });
@@ -301,13 +301,13 @@ export const sendDropStartedFlowTrigger = client.defineJob({
       return;
     }
 
-    const klayvioTemplateId = await io.runTask(
-      "create-klayvio-template",
+    const klaviyoTemplateId = await io.runTask(
+      "create-klaviyo-template",
       async (task) => {
         return await createTemplate(drop.name, drop.products);
       }
     );
-    await io.logger.info(`Created Klayvio Template: ${klayvioTemplateId}`);
+    await io.logger.info(`Created Klaviyo Template: ${klaviyoTemplateId}`);
 
     await io.runTask("send-flow-trigger", async (task) => {
       await executeFlowTrigger("drop-started", {
@@ -316,7 +316,11 @@ export const sendDropStartedFlowTrigger = client.defineJob({
           name: drop.name,
           products: productIds,
         },
-        "Klayvio Template ID": klayvioTemplateId,
+        Klaviyo: {
+          listId: drop.klaviyo.listId,
+          templateId: klaviyoTemplateId,
+          apiKey: drop.klaviyo.apiKey,
+        },
       });
     });
   },

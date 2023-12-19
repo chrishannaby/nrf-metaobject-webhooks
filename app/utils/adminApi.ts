@@ -93,7 +93,10 @@ export async function queryAdminApi<T>(
 const dropQuery = `
 query metaobjectReferences($id: ID!) {
 	metaobject(id: $id) {
-        displayName
+    displayName
+    klaviyoListId: field(key: "klaviyo_list_id") {
+			value
+		}
 		referencedBy(first: 100) {
 			edges {
 				node {
@@ -118,6 +121,9 @@ type GetDropOperation = {
   data: {
     metaobject: {
       displayName: string;
+      klaviyoListId: {
+        value: string;
+      };
       referencedBy: Connection<{
         referencer: {
           id: string;
@@ -142,16 +148,30 @@ export type Product = {
   imageUrl: string;
 };
 
-export async function getDrop(
-  dropId: string
-): Promise<{ id: string; name: string; products: Product[] }> {
+type Klaviyo = {
+  listId: string;
+  apiKey: string;
+};
+
+export async function getDrop(dropId: string): Promise<{
+  id: string;
+  name: string;
+  klaviyo: Klaviyo;
+  products: Product[];
+}> {
   const response = await queryAdminApi<GetDropOperation>(dropQuery, {
     id: dropId,
   });
 
+  const metaobject = response.body.data.metaobject;
+
   return {
     id: dropId,
-    name: response.body.data.metaobject.displayName,
+    name: metaobject.displayName,
+    klaviyo: {
+      listId: metaobject.klaviyoListId.value,
+      apiKey: process.env.KLAVIYO_API_KEY || "",
+    },
     products: response.body.data.metaobject.referencedBy.edges.map((edge) => {
       const product = edge.node.referencer;
       return {
@@ -170,7 +190,11 @@ type FlowTriggerPayload = {
     name: string;
     products: Array<{ productId: string }>;
   };
-  "Klayvio Template ID"?: string;
+  Klaviyo?: {
+    listId: string;
+    templateId: string;
+    apiKey: string;
+  };
 };
 
 const flowTriggerMutation = `
@@ -208,11 +232,11 @@ export async function executeFlowTrigger(
   const { data } = await response.json();
 }
 
-const updateKlayvioListIdMutation = `
-mutation updateKlayvioListId($id: ID!, $klayvioListId: String!) {
+const updateKlaviyoListIdMutation = `
+mutation updateKlaviyoListId($id: ID!, $klaviyoListId: String!) {
 	metaobjectUpdate(
 		id: $id
-		metaobject: { fields: [{ key: "klayvio_list_id", value: $klayvioListId }] }
+		metaobject: { fields: [{ key: "klaviyo_list_id", value: $klaviyoListId }] }
 	) {
 		userErrors {
 			field
@@ -222,9 +246,9 @@ mutation updateKlayvioListId($id: ID!, $klayvioListId: String!) {
 }
 `;
 
-export async function updateKlayvioListId(
+export async function updateKlaviyoListId(
   dropId: string,
-  klayvioListId: string
+  klaviyoListId: string
 ) {
   const response = await fetch(
     `https://${process.env.SHOPIFY_SHOP_DOMAIN}/admin/api/2024-01/graphql.json`,
@@ -235,10 +259,10 @@ export async function updateKlayvioListId(
         "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN || "",
       },
       body: JSON.stringify({
-        query: updateKlayvioListIdMutation,
+        query: updateKlaviyoListIdMutation,
         variables: {
           id: dropId,
-          klayvioListId,
+          klaviyoListId,
         },
       }),
     }

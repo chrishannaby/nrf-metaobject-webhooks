@@ -1,21 +1,21 @@
 import { type Product } from "./adminApi";
 
-const klayvioUrl = "https://a.klaviyo.com/api";
-const klayvioApiKey = `Klaviyo-API-Key ${process.env.KLAYVIO_API_KEY}`;
+const klaviyoUrl = "https://a.klaviyo.com/api";
+const klaviyoApiKey = `Klaviyo-API-Key ${process.env.KLAVIYO_API_KEY}`;
 
-async function postToKlayvio(resource: string, body: any) {
+async function postToKlaviyo(resource: string, body: any) {
   const options = {
     method: "POST",
     headers: {
       accept: "application/json",
       revision: "2023-12-15",
       "content-type": "application/json",
-      Authorization: klayvioApiKey,
+      Authorization: klaviyoApiKey,
     },
     body: JSON.stringify(body),
   };
   try {
-    const response = await fetch(`${klayvioUrl}/${resource}/`, options);
+    const response = await fetch(`${klaviyoUrl}/${resource}/`, options);
     const json = await response.json();
     return json;
   } catch (e) {
@@ -33,7 +33,7 @@ export async function createList(name: string): Promise<string> {
       },
     },
   };
-  const response = await postToKlayvio("lists", body);
+  const response = await postToKlaviyo("lists", body);
   return response?.data?.id;
 }
 
@@ -52,7 +52,7 @@ export async function createTemplate(
       },
     },
   };
-  const response = await postToKlayvio("templates", body);
+  const response = await postToKlaviyo("templates", body);
   return response?.data?.id;
 }
 
