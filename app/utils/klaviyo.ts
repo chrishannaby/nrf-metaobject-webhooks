@@ -778,13 +778,12 @@ function generateEmailMarkup(products: Product[]): string {
                                                       width="100%"
                                                     >
                                                       <tbody>
-                                                        <tr>
+                                                        <tr class="gmail-blend-difference">
                                                           <td
                                                             align="center"
                                                             class="kl-text"
                                                             style="
                                                               background: #262626;
-                                                              gmail-blend-difference
                                                               font-size: 0px;
                                                               padding: 0px;
                                                               padding-top: 27px;
@@ -916,12 +915,10 @@ function generateEmailMarkup(products: Product[]): string {
                                               width="100%"
                                             >
                                               <tbody>
-                                                <tr>
+                                                <tr class="gmail-blend-difference">
                                                   <td
-                                                    class=""
                                                     style="
                                                       background-color: #262626;
-                                                      gmail-blend-difference
                                                       vertical-align: top;
                                                       padding-top: 9px;
                                                       padding-right: 9px;
@@ -1065,12 +1062,11 @@ function generateEmailMarkup(products: Product[]): string {
                                               width="100%"
                                             >
                                               <tbody>
-                                                <tr>
+                                                <tr class="gmail-blend-difference">
                                                   <td
                                                     class="hlb-block-settings-content"
                                                     style="
                                                       background-color: #262626;
-                                                      gmail-blend-difference
                                                       vertical-align: top;
                                                       padding-top: 5px;
                                                       padding-right: 0px;
@@ -1759,8 +1755,8 @@ function generateProductMarkup(product: Product): string {
                       <tr>
                         <td
                           align="center"
-                          bgcolor="#262626"
                           role="presentation"
+                          class="gmail-blend-difference"
                           style="
                             border: none;
                             border-radius: 100px;
@@ -1768,8 +1764,6 @@ function generateProductMarkup(product: Product): string {
                             font-style: normal;
                             mso-padding-alt: 10px 20px 10px 20px;
                             text-align: center;
-                            background: #262626;
-                            gmail-blend-difference
                           "
                           valign="middle"
                         >
@@ -1782,7 +1776,6 @@ function generateProductMarkup(product: Product): string {
                               text-decoration: none;
                               display: inline-block;
                               background: #262626;
-                              gmail-blend-difference
                               font-family: Arial;
                               font-size: 16px;
                               line-height: 1.3;
