@@ -784,7 +784,7 @@ function generateEmailMarkup(products: Product[]): string {
                                                             class="kl-text"
                                                             style="
                                                               background: #262626;
-                                                              mix-blend-mode:difference;
+                                                              gmail-blend-difference
                                                               font-size: 0px;
                                                               padding: 0px;
                                                               padding-top: 27px;
@@ -921,7 +921,7 @@ function generateEmailMarkup(products: Product[]): string {
                                                     class=""
                                                     style="
                                                       background-color: #262626;
-                                                      mix-blend-mode:difference;
+                                                      gmail-blend-difference
                                                       vertical-align: top;
                                                       padding-top: 9px;
                                                       padding-right: 9px;
@@ -1070,7 +1070,7 @@ function generateEmailMarkup(products: Product[]): string {
                                                     class="hlb-block-settings-content"
                                                     style="
                                                       background-color: #262626;
-                                                      mix-blend-mode:difference;
+                                                      gmail-blend-difference
                                                       vertical-align: top;
                                                       padding-top: 5px;
                                                       padding-right: 0px;
@@ -1769,7 +1769,7 @@ function generateProductMarkup(product: Product): string {
                             mso-padding-alt: 10px 20px 10px 20px;
                             text-align: center;
                             background: #262626;
-                            mix-blend-mode:difference;
+                            gmail-blend-difference
                           "
                           valign="middle"
                         >
@@ -1782,7 +1782,7 @@ function generateProductMarkup(product: Product): string {
                               text-decoration: none;
                               display: inline-block;
                               background: #262626;
-                              mix-blend-mode:difference;
+                              gmail-blend-difference
                               font-family: Arial;
                               font-size: 16px;
                               line-height: 1.3;
