@@ -574,9 +574,7 @@ function generateEmailMarkup(products: Product[]): string {
                                                                 color: #727272;
                                                               "
                                                             >
-                                                              Can't see this
-                                                              email? {% web_view
-                                                              %}
+                                                              Can't see this email? {% web_view %}
                                                             </div>
                                                           </td>
                                                         </tr>
@@ -1624,14 +1622,8 @@ function generateEmailMarkup(products: Product[]): string {
                                                               >
                                                                 No longer want
                                                                 to receive these
-                                                                emails? {%
-                                                                unsubscribe
-                                                                %}.<br />
-                                                                {{
-                                                                organization.name
-                                                                }} {{
-                                                                organization.full_address
-                                                                }}
+                                                                emails? {% unsubscribe %}.<br />
+                                                                {{ organization.name }} {{ organization.full_address }}
                                                               </p>
                                                             </div>
                                                           </td>
