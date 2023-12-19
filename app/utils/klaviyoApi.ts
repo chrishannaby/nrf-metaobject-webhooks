@@ -1,7 +1,29 @@
+import { meta } from "~/routes/_index";
 import { type Product } from "./adminApi";
+import { z } from "zod";
+import { id } from "date-fns/locale";
 
 const klaviyoUrl = "https://a.klaviyo.com/api";
 const klaviyoApiKey = `Klaviyo-API-Key ${process.env.KLAVIYO_API_KEY}`;
+
+const createProfileSchema = z.union([
+  z.object({
+    errors: z.array(
+      z.object({
+        code: z.literal("duplicate_profile"),
+        meta: z.object({
+          duplicate_profile_id: z.string(),
+        }),
+      })
+    ),
+  }),
+  z.object({
+    data: z.object({
+      type: z.literal("profile"),
+      id: z.string(),
+    }),
+  }),
+]);
 
 async function postToKlaviyo(resource: string, body: any) {
   const options = {
@@ -22,6 +44,39 @@ async function postToKlaviyo(resource: string, body: any) {
     console.error(e);
     return "";
   }
+}
+
+export async function createProfile(email: string): Promise<string> {
+  const body = {
+    data: {
+      type: "profile",
+      attributes: {
+        email,
+      },
+    },
+  };
+  const response = await postToKlaviyo("profiles", body);
+  const result = createProfileSchema.parse(response);
+  if ("errors" in result) {
+    return result.errors[0].meta.duplicate_profile_id;
+  } else {
+    return result.data.id;
+  }
+}
+
+export async function addToProfileList(
+  profileId: string,
+  listId: string
+): Promise<void> {
+  const body = {
+    data: [
+      {
+        type: "profile",
+        id: profileId,
+      },
+    ],
+  };
+  await postToKlaviyo(`lists/${listId}/relationships/profiles`, body);
 }
 
 export async function createList(name: string): Promise<string> {

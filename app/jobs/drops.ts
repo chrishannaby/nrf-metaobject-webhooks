@@ -16,7 +16,7 @@ import {
   parseProductId,
   updateKlaviyoListId,
 } from "~/utils/adminApi";
-import { createTemplate, createList } from "~/utils/klaviyo";
+import { createTemplate, createList } from "~/utils/klaviyoApi";
 
 export const created = client.defineJob({
   id: "drop-created",
