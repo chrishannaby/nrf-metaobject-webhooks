@@ -29,7 +29,7 @@ export async function createList(name: string): Promise<string> {
     data: {
       type: "list",
       attributes: {
-        name,
+        name: `Drop: ${name}`,
       },
     },
   };
@@ -45,7 +45,7 @@ export async function createTemplate(
     data: {
       type: "template",
       attributes: {
-        name: dropName,
+        name: `Drop: ${dropName}`,
         editor_type: "CODE",
         html: generateEmailMarkup(products),
         text: `Drop starts now: ${dropName}`,
