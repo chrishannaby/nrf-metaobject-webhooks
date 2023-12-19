@@ -778,7 +778,7 @@ function generateEmailMarkup(products: Product[]): string {
                                                       width="100%"
                                                     >
                                                       <tbody>
-                                                        <tr class="gmail-blend-difference">
+                                                        <tr class="gmail-blend-screen">
                                                           <td
                                                             align="center"
                                                             class="kl-text"
@@ -915,7 +915,7 @@ function generateEmailMarkup(products: Product[]): string {
                                               width="100%"
                                             >
                                               <tbody>
-                                                <tr class="gmail-blend-difference">
+                                                <tr class="gmail-blend-screen">
                                                   <td
                                                     style="
                                                       background-color: #262626;
@@ -1062,7 +1062,7 @@ function generateEmailMarkup(products: Product[]): string {
                                               width="100%"
                                             >
                                               <tbody>
-                                                <tr class="gmail-blend-difference">
+                                                <tr class="gmail-blend-screen">
                                                   <td
                                                     class="hlb-block-settings-content"
                                                     style="
@@ -1756,7 +1756,7 @@ function generateProductMarkup(product: Product): string {
                         <td
                           align="center"
                           role="presentation"
-                          class="gmail-blend-difference"
+                          class="gmail-blend-screen"
                           style="
                             border: none;
                             border-radius: 100px;
