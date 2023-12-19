@@ -421,7 +421,7 @@ function generateEmailMarkup(products: Product[]): string {
       id="bodyTable"
       style="background:#fff; background-image:linear-gradient(#fff,#fff); color:#fff;"
     >
-      <div class="root-container-spacing">
+      <div class="root-container-spacing gmail-blend-screen">
         <table
           align="center"
           border="0"
