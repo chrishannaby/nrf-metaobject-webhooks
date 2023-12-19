@@ -419,7 +419,7 @@ function generateEmailMarkup(products: Product[]): string {
     <div
       class="root-container"
       id="bodyTable"
-      style="background:#639; background-image:linear-gradient(#639,#639); color:#fff;"
+      style="background:#fff; background-image:linear-gradient(#fff,#fff); color:#fff;"
     >
       <div class="root-container-spacing">
         <table
@@ -459,8 +459,6 @@ function generateEmailMarkup(products: Product[]): string {
                         >
                           <div
                             style="
-                              background: #ffffff;
-                              background-color: #ffffff;
                               margin: 0px auto;
                               border-radius: 0px 0px 0px 0px;
                               max-width: 600px;
@@ -473,8 +471,6 @@ function generateEmailMarkup(products: Product[]): string {
                               cellspacing="0"
                               role="presentation"
                               style="
-                                background: #ffffff;
-                                background-color: #ffffff;
                                 width: 100%;
                                 border-radius: 0px 0px 0px 0px;
                               "
