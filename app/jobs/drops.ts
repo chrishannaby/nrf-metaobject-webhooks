@@ -9,7 +9,14 @@ import { db } from "~/drizzle/config.server";
 import { drops } from "~/drizzle/schema.server";
 import { eq } from "drizzle-orm";
 import { isBefore, isAfter } from "date-fns";
-import { executeFlowTrigger, getDrop, parseProductId } from "~/utils/adminApi";
+import {
+  Product,
+  executeFlowTrigger,
+  getDrop,
+  parseProductId,
+  updateKlayvioListId,
+} from "~/utils/adminApi";
+import { createTemplate, createList } from "~/utils/klayvio";
 
 export const created = client.defineJob({
   id: "drop-created",
@@ -56,6 +63,17 @@ export const created = client.defineJob({
         endedEventId: dropEndedEvent?.id,
         endTime: payload.fields.end_time?.toISOString(),
       });
+    });
+
+    const klayvioListId = await io.runTask(
+      "create-klayvio-list",
+      async (task) => {
+        return await createList(payload.handle);
+      }
+    );
+    await io.logger.info(`Created Klayvio List: ${klayvioListId}`);
+    await io.runTask("update-klayvio-list-id", async (task) => {
+      await updateKlayvioListId(payload.id, klayvioListId);
     });
   },
 });
@@ -245,9 +263,9 @@ export const updated = client.defineJob({
   },
 });
 
-function extractProductIds(products: string[]) {
+function extractProductIds(products: Product[]) {
   return products.flatMap((product) => {
-    const parsed = parseProductId(product);
+    const parsed = parseProductId(product.id);
     if (!parsed) {
       return [];
     }
@@ -270,21 +288,35 @@ export const sendDropStartedFlowTrigger = client.defineJob({
       `Send Drop Started Flow Trigger for ${payload.dropId}`
     );
 
-    await io.runTask("fetch-drop", async (task) => {
-      const drop = await getDrop(payload.dropId);
-      await io.logger.info(`Got drop: ${JSON.stringify(drop)}`);
-      if (!drop.products.length) {
-        await io.logger.info(`Drop has no products, skipping`);
-        return;
+    const drop = await io.runTask("fetch-drop", async (task) => {
+      return await getDrop(payload.dropId);
+    });
+
+    await io.logger.info(`Got drop: ${JSON.stringify(drop)}`);
+
+    const productIds = extractProductIds(drop.products);
+
+    if (productIds.length === 0) {
+      await io.logger.info(`Drop has no products, skipping`);
+      return;
+    }
+
+    const klayvioTemplateId = await io.runTask(
+      "create-klayvio-template",
+      async (task) => {
+        return await createTemplate(drop.name, drop.products);
       }
-      await io.runTask("send-flow-trigger", async (task) => {
-        await executeFlowTrigger("drop-started", {
-          Drop: {
-            id: drop.id,
-            name: drop.name,
-            products: extractProductIds(drop.products),
-          },
-        });
+    );
+    await io.logger.info(`Created Klayvio Template: ${klayvioTemplateId}`);
+
+    await io.runTask("send-flow-trigger", async (task) => {
+      await executeFlowTrigger("drop-started", {
+        Drop: {
+          id: drop.id,
+          name: drop.name,
+          products: productIds,
+        },
+        "Klayvio Template ID": klayvioTemplateId,
       });
     });
   },

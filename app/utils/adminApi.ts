@@ -100,6 +100,11 @@ query metaobjectReferences($id: ID!) {
 					referencer {
 						... on Product {
 							id
+              title
+							onlineStoreUrl
+							featuredImage {
+								url
+							}
 						}
 					}
 				}
@@ -116,6 +121,11 @@ type GetDropOperation = {
       referencedBy: Connection<{
         referencer: {
           id: string;
+          title: string;
+          onlineStoreUrl: string;
+          featuredImage: {
+            url: string;
+          };
         };
       }>;
     };
@@ -125,7 +135,16 @@ type GetDropOperation = {
   };
 };
 
-export async function getDrop(dropId: string) {
+export type Product = {
+  id: string;
+  name: string;
+  url: string;
+  imageUrl: string;
+};
+
+export async function getDrop(
+  dropId: string
+): Promise<{ id: string; name: string; products: Product[] }> {
   const response = await queryAdminApi<GetDropOperation>(dropQuery, {
     id: dropId,
   });
@@ -133,9 +152,15 @@ export async function getDrop(dropId: string) {
   return {
     id: dropId,
     name: response.body.data.metaobject.displayName,
-    products: response.body.data.metaobject.referencedBy.edges.map(
-      (edge) => edge.node.referencer.id
-    ),
+    products: response.body.data.metaobject.referencedBy.edges.map((edge) => {
+      const product = edge.node.referencer;
+      return {
+        id: product.id,
+        name: product.title,
+        url: product.onlineStoreUrl,
+        imageUrl: product.featuredImage.url,
+      };
+    }),
   };
 }
 
@@ -145,9 +170,10 @@ type FlowTriggerPayload = {
     name: string;
     products: Array<{ productId: string }>;
   };
+  "Klayvio Template ID"?: string;
 };
 
-const flowTriggerQuery = `
+const flowTriggerMutation = `
 mutation flowTriggerReceive($handle: String, $payload: JSON) {
 	flowTriggerReceive(handle: $handle, payload: $payload) {
 		userErrors {
@@ -171,7 +197,7 @@ export async function executeFlowTrigger(
         "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN || "",
       },
       body: JSON.stringify({
-        query: flowTriggerQuery,
+        query: flowTriggerMutation,
         variables: {
           handle: triggerHandle,
           payload,
@@ -180,7 +206,45 @@ export async function executeFlowTrigger(
     }
   );
   const { data } = await response.json();
-  console.log(data.flowTriggerReceive.userErrors);
+}
+
+const updateKlayvioListIdMutation = `
+mutation updateKlayvioListId($id: ID!, $klayvioListId: String!) {
+	metaobjectUpdate(
+		id: $id
+		metaobject: { fields: [{ key: "klayvio_list_id", value: $klayvioListId }] }
+	) {
+		userErrors {
+			field
+			message
+		}
+	}
+}
+`;
+
+export async function updateKlayvioListId(
+  dropId: string,
+  klayvioListId: string
+) {
+  const response = await fetch(
+    `https://${process.env.SHOPIFY_SHOP_DOMAIN}/admin/api/2024-01/graphql.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN || "",
+      },
+      body: JSON.stringify({
+        query: updateKlayvioListIdMutation,
+        variables: {
+          id: dropId,
+          klayvioListId,
+        },
+      }),
+    }
+  );
+  const { data } = await response.json();
+  console.log(data.metaobjectUpdate.userErrors);
 }
 
 const productIdRegex = /^gid:\/\/shopify\/Product\/(\d+)$/;
