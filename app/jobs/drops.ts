@@ -8,7 +8,7 @@ import { z } from "zod";
 import { db } from "~/drizzle/config.server";
 import { drops } from "~/drizzle/schema.server";
 import { eq } from "drizzle-orm";
-import { isBefore, isAfter } from "date-fns";
+import { isBefore, isAfter, isEqual } from "date-fns";
 import {
   Product,
   executeFlowTrigger,
@@ -129,6 +129,12 @@ export const deleted = client.defineJob({
   },
 });
 
+const endTimesAreEqual = (a: Date | null, b: Date | null) => {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return isEqual(a, b);
+};
+
 export const updated = client.defineJob({
   id: "drop-updated",
   name: "Drop Updated",
@@ -161,8 +167,15 @@ export const updated = client.defineJob({
     const newEndTime = payload.fields.end_time;
     const previousStartTime = new Date(drop.startTime);
     const previousEndTime = drop.endTime ? new Date(drop.endTime) : null;
-    if (newStartTime === previousStartTime && newEndTime === previousEndTime)
+    if (
+      isEqual(newStartTime, previousStartTime) &&
+      endTimesAreEqual(newEndTime, previousEndTime)
+    ) {
+      await io.logger.info(
+        `Drop start and end times have not changed, skipping`
+      );
       return;
+    }
 
     await io.logger.info(
       `previousStartTime: ${previousStartTime.toISOString()} newStartTime: ${newStartTime.toISOString()}`
