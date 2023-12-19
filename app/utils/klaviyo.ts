@@ -90,6 +90,8 @@ function generateEmailMarkup(products: Product[]): string {
     <![endif]-->
 
     <style>
+      u + .body .gmail-blend-screen { background:#000; mix-blend-mode:screen; }
+      u + .body .gmail-blend-difference { background:#000; mix-blend-mode:difference; }
       a:link {
         color: #15c;
         font-weight: normal;
@@ -417,7 +419,7 @@ function generateEmailMarkup(products: Product[]): string {
     <div
       class="root-container"
       id="bodyTable"
-      style="background-color: #ffffff"
+      style="background:#639; background-image:linear-gradient(#639,#639); color:#fff;"
     >
       <div class="root-container-spacing">
         <table
