@@ -16,7 +16,6 @@ import {
   getDraw,
 } from "~/utils/adminApi";
 import { registerSchema } from "~/routes/registerForDraw";
-import { ta } from "date-fns/locale";
 
 export const createdDraw = client.defineJob({
   id: "prize_draw-created",
@@ -193,6 +192,23 @@ export const sendDrawStartedFlowTrigger = client.defineJob({
       return await getDraw(payload.drawId);
     });
 
+    if (!draw) {
+      await io.logger.info(`Draw not found: ${payload.drawId}`);
+      return;
+    }
+
+    //get customers from db
+    const customers = await io.runTask("fetch-customers", async (task) => {
+      return await db
+        .select()
+        .from(drawSignups)
+        .where(eq(drawSignups.drawId, payload.drawId));
+    });
+
+    const winners = getRandomItems(customers, draw.numberAvailable);
+
+    await io.logger.info(`Winners: ${JSON.stringify(winners)}`);
+
     await io.logger.info(`Got draw: ${JSON.stringify(draw)}`);
   },
 });
@@ -278,3 +294,12 @@ export const addCustomer = client.defineJob({
     await io.logger.info(`Got customer: ${JSON.stringify(customer)}`);
   },
 });
+
+function getRandomItems<T>(arr: T[], n: number): T[] {
+  let tempArr = [...arr];
+  for (let i = tempArr.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [tempArr[i], tempArr[j]] = [tempArr[j], tempArr[i]];
+  }
+  return tempArr.slice(0, n);
+}
