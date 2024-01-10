@@ -9,8 +9,9 @@ import { db } from "~/drizzle/config.server";
 import { drawSignups, draws } from "~/drizzle/schema.server";
 import { eq } from "drizzle-orm";
 import { isBefore, isAfter, isEqual } from "date-fns";
-import { getDraw } from "~/utils/adminApi";
+import { createCustomer, getCustomer, getDraw } from "~/utils/adminApi";
 import { registerSchema } from "~/routes/registerForDraw";
+import { ta } from "date-fns/locale";
 
 export const createdDraw = client.defineJob({
   id: "prize_draw-created",
@@ -220,11 +221,51 @@ export const registerForDraw = client.defineJob({
       return;
     }
 
+    // add customer to shopify
+    await io.runTask("add-customer", async (task) => {
+      await io.sendEvent("customer.created", {
+        name: "customer.created",
+        payload: {
+          email: payload.email,
+          tags: payload.drawId,
+        },
+      });
+    });
+
     await io.runTask("add-to-database", async (task) => {
       await db.insert(drawSignups).values({
         drawId: payload.drawId,
         email: payload.email,
       });
     });
+  },
+});
+
+export const addCustomer = client.defineJob({
+  id: "create-customer",
+  name: "Create Customer",
+  version: "0.0.1",
+  trigger: eventTrigger({
+    name: "customer.created",
+    schema: z.object({
+      email: z.string(),
+      tags: z.string(),
+    }),
+  }),
+  run: async (payload, io, ctx) => {
+    await io.logger.info(`Create Customer: email: ${payload.email}`);
+
+    let customer = await io.runTask("get-customer", async (task) => {
+      return await getCustomer(payload.email);
+    });
+
+    if (!customer) {
+      await io.logger.info(`Customer not found: ${payload.email}`);
+      customer = await io.runTask("create-customer", async (task) => {
+        return await createCustomer(payload.email, []);
+      });
+    }
+
+    await io.logger.info(`Got customer: ${JSON.stringify(customer)}`);
   },
 });

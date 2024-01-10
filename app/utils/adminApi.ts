@@ -351,3 +351,150 @@ export function parseMetaobjectId(metaobjectId: string) {
   }
   return match[1];
 }
+
+const getCustomerQuery = `
+query getCustomer($query: String!) {
+  customers(first: 1, query: $query){
+    nodes {
+			id
+    }
+  }
+}
+`;
+
+type GetCustomerOperation = {
+  data: {
+    customers: {
+      nodes: Array<{
+        id: string;
+      }>;
+    };
+  };
+  variables: {
+    query: string;
+  };
+};
+
+export async function getCustomer(email: string): Promise<string> {
+  const response = await queryAdminApi<GetCustomerOperation>(getCustomerQuery, {
+    query: email,
+  });
+
+  const customers = response.body.data.customers.nodes;
+
+  if (customers.length === 0) {
+    return "";
+  }
+
+  return customers[0].id;
+}
+
+const createCustomerQuery = `
+mutation createCustomer($input: CustomerInput!) {
+  customerCreate(input: $input) {
+    customer {
+      id
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
+type CreateCustomerOperation = {
+  data: {
+    customerCreate: {
+      customer: {
+        id: string;
+      };
+      userErrors: Array<{
+        field: string;
+        message: string;
+      }>;
+    };
+  };
+  variables: {
+    input: {
+      email: string;
+      tags: string[];
+      emailMarketingConsent: {
+        marketingOptInLevel: string;
+        marketingState: string;
+      };
+    };
+  };
+};
+
+export async function createCustomer(
+  email: string,
+  tags: string[]
+): Promise<string> {
+  const response = await queryAdminApi<CreateCustomerOperation>(
+    createCustomerQuery,
+    {
+      input: {
+        email,
+        tags,
+        emailMarketingConsent: {
+          marketingOptInLevel: "CONFIRMED_OPT_IN",
+          marketingState: "SUBSCRIBED",
+        },
+      },
+    }
+  );
+
+  const customer = response.body.data.customerCreate.customer;
+
+  return customer.id;
+}
+
+const addTagsToCustomerQuery = `
+mutation tagsAdd($id: ID!, $tags: [String!]!) {
+  tagsAdd(id: $id, tags: $tags) {
+    node {
+      id
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
+type AddTagsToCustomerOperation = {
+  data: {
+    tagsAdd: {
+      node: {
+        id: string;
+      };
+      userErrors: Array<{
+        field: string;
+        message: string;
+      }>;
+    };
+  };
+  variables: {
+    id: string;
+    tags: string[];
+  };
+};
+
+export async function addTagsToCustomer(
+  customerId: string,
+  tags: string[]
+): Promise<void> {
+  const response = await queryAdminApi<AddTagsToCustomerOperation>(
+    addTagsToCustomerQuery,
+    {
+      id: customerId,
+      tags,
+    }
+  );
+
+  const customer = response.body.data.tagsAdd.node;
+
+  return;
+}
