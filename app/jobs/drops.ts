@@ -1,8 +1,8 @@
 import { eventTrigger } from "@trigger.dev/sdk";
 import { client } from "~/trigger.server";
 import {
-  createdOrUpdatedWebhookSchema,
-  deletedWebhookSchema,
+  createdOrUpdatedDropWebhookSchema,
+  baseWebhookSchema,
 } from "~/utils/webhooks";
 import { z } from "zod";
 import { db } from "~/drizzle/config.server";
@@ -18,13 +18,13 @@ import {
 } from "~/utils/adminApi";
 import { createTemplate, createList } from "~/utils/klaviyoApi";
 
-export const created = client.defineJob({
+export const createdDrop = client.defineJob({
   id: "drop-created",
   name: "Drop Created",
   version: "0.0.1",
   trigger: eventTrigger({
     name: "drop.created",
-    schema: createdOrUpdatedWebhookSchema,
+    schema: createdOrUpdatedDropWebhookSchema,
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(`Drop Created: ${payload.handle}`);
@@ -78,13 +78,13 @@ export const created = client.defineJob({
   },
 });
 
-export const deleted = client.defineJob({
+export const deletedDrop = client.defineJob({
   id: "drop-deleted",
   name: "Drop Deleted",
   version: "0.0.1",
   trigger: eventTrigger({
     name: "drop.deleted",
-    schema: deletedWebhookSchema,
+    schema: baseWebhookSchema,
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(`Drop Deleted: ${payload.handle}`);
@@ -135,13 +135,13 @@ const endTimesAreEqual = (a: Date | null, b: Date | null) => {
   return isEqual(a, b);
 };
 
-export const updated = client.defineJob({
+export const updatedDrop = client.defineJob({
   id: "drop-updated",
   name: "Drop Updated",
   version: "0.0.1",
   trigger: eventTrigger({
     name: "drop.updated",
-    schema: createdOrUpdatedWebhookSchema,
+    schema: createdOrUpdatedDropWebhookSchema,
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(`Drop Updated: ${payload.handle}`);

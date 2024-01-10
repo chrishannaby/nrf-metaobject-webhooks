@@ -19,21 +19,21 @@ export async function action({ request }: ActionFunctionArgs) {
     case "metaobjects/create":
       data = createdOrUpdatedWebhookSchema.parse(rawData);
       await client.sendEvent({
-        name: "drop.created",
+        name: `${data.type}.created`,
         payload: data,
       });
       break;
     case "metaobjects/delete":
       data = deletedWebhookSchema.parse(rawData);
       await client.sendEvent({
-        name: "drop.deleted",
+        name: `${data.type}.deleted`,
         payload: data,
       });
       break;
     case "metaobjects/update":
       data = createdOrUpdatedWebhookSchema.parse(rawData);
       await client.sendEvent({
-        name: "drop.updated",
+        name: `${data.type}.updated`,
         payload: data,
       });
       break;

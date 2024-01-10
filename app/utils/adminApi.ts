@@ -184,6 +184,67 @@ export async function getDrop(dropId: string): Promise<{
   };
 }
 
+const drawQuery = `
+query drawQuery($id: ID!) {
+	metaobject(id: $id) {
+    displayName
+		handle
+		product: field(key: "product") {
+			value
+		}
+		numberAvailable: field(key: "number_available") {
+			value
+		}
+    secret: field(key: "secret") {
+      value
+    }
+	}
+}
+`;
+
+type GetDrawOperation = {
+  data: {
+    metaobject: {
+      id: string;
+      displayName: string;
+      product: {
+        value: string;
+      };
+      numberAvailable: {
+        value: number;
+      };
+      secret: {
+        value: string;
+      };
+    };
+  };
+  variables: {
+    id: string;
+  };
+};
+
+export async function getDraw(drawId: string): Promise<{
+  id: string;
+  name: string;
+  productId: string;
+  numberAvailable: number;
+  secret: string;
+}> {
+  const response = await queryAdminApi<GetDrawOperation>(drawQuery, {
+    id: drawId,
+  });
+
+  const metaobject = response.body.data.metaobject;
+
+  return {
+    id: drawId,
+    name: metaobject.displayName,
+    productId: metaobject.product.value,
+    numberAvailable: metaobject.numberAvailable.value,
+    secret: metaobject.secret.value,
+  };
+}
+
 type FlowTriggerPayload = {
   Drop: {
     id: string;

@@ -16,9 +16,9 @@ export async function loader() {
       const drop = await getDrop(row.shopifyId);
       return {
         name: drop.name,
-        url: `https://admin.shopify.com/store/230154-2/content/entries/drop/${parseMetaobjectId(
-          row.shopifyId
-        )}`,
+        url: `https://admin.shopify.com/store/${
+          process.env.SHOPIFY_SHOP_ID || ""
+        }/content/entries/drop/${parseMetaobjectId(row.shopifyId)}`,
         id: row.shopifyId,
         startTime: row.startTime,
         endTime: row.endTime,
