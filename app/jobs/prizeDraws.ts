@@ -8,8 +8,13 @@ import { z } from "zod";
 import { db } from "~/drizzle/config.server";
 import { drawSignups, draws } from "~/drizzle/schema.server";
 import { eq } from "drizzle-orm";
-import { isBefore, isAfter, isEqual } from "date-fns";
-import { createCustomer, getCustomer, getDraw } from "~/utils/adminApi";
+import { isBefore, isAfter, isEqual, add } from "date-fns";
+import {
+  addTagsToCustomer,
+  createCustomer,
+  getCustomer,
+  getDraw,
+} from "~/utils/adminApi";
 import { registerSchema } from "~/routes/registerForDraw";
 import { ta } from "date-fns/locale";
 
@@ -259,10 +264,14 @@ export const addCustomer = client.defineJob({
       return await getCustomer(payload.email);
     });
 
+    await io.runTask("add-tags", async (task) => {
+      await addTagsToCustomer(customer, payload.tags);
+    });
+
     if (!customer) {
       await io.logger.info(`Customer not found: ${payload.email}`);
       customer = await io.runTask("create-customer", async (task) => {
-        return await createCustomer(payload.email, []);
+        return await createCustomer(payload.email, payload.tags);
       });
     }
 

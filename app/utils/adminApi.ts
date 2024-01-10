@@ -418,7 +418,7 @@ type CreateCustomerOperation = {
   variables: {
     input: {
       email: string;
-      tags: string[];
+      tags: string;
       emailMarketingConsent: {
         marketingOptInLevel: string;
         marketingState: string;
@@ -429,7 +429,7 @@ type CreateCustomerOperation = {
 
 export async function createCustomer(
   email: string,
-  tags: string[]
+  tags: string
 ): Promise<string> {
   const response = await queryAdminApi<CreateCustomerOperation>(
     createCustomerQuery,
@@ -478,13 +478,13 @@ type AddTagsToCustomerOperation = {
   };
   variables: {
     id: string;
-    tags: string[];
+    tags: string;
   };
 };
 
 export async function addTagsToCustomer(
   customerId: string,
-  tags: string[]
+  tags: string
 ): Promise<void> {
   const response = await queryAdminApi<AddTagsToCustomerOperation>(
     addTagsToCustomerQuery,
