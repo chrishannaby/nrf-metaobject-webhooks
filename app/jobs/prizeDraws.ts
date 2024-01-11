@@ -130,8 +130,7 @@ export const updatedDraw = client.defineJob({
 
     const now = new Date(Date.now());
 
-    const drawHappened = isBefore(previousStartTime, now);
-    if (drawHappened || isBefore(newStartTime, now)) {
+    if (isBefore(newStartTime, now)) {
       await io.logger.info(`new start time is in the past, skipping`);
       return;
     }
