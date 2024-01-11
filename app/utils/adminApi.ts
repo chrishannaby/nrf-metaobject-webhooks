@@ -191,6 +191,15 @@ query drawQuery($id: ID!) {
 		handle
 		product: field(key: "product") {
 			value
+     	reference {
+				... on Product {
+					variants(first: 1) {
+						nodes {
+							id
+						}
+					}
+				}
+			} 
 		}
 		numberAvailable: field(key: "number_available") {
 			value
@@ -209,6 +218,13 @@ type GetDrawOperation = {
       displayName: string;
       product: {
         value: string;
+        reference: {
+          variants: {
+            nodes: Array<{
+              id: string;
+            }>;
+          };
+        };
       };
       numberAvailable: {
         value: number;
@@ -227,6 +243,7 @@ export async function getDraw(drawId: string): Promise<{
   id: string;
   name: string;
   productId: string;
+  variantId: string;
   numberAvailable: number;
   secret: string;
 }> {
@@ -240,6 +257,7 @@ export async function getDraw(drawId: string): Promise<{
     id: drawId,
     name: metaobject.displayName,
     productId: metaobject.product.value,
+    variantId: metaobject.product.reference.variants.nodes[0].id,
     numberAvailable: metaobject.numberAvailable.value,
     secret: metaobject.secret.value,
   };
@@ -497,4 +515,89 @@ export async function addTagsToCustomer(
   const customer = response.body.data.tagsAdd.node;
 
   return;
+}
+
+const createDraftOrderQuery = `
+mutation createDraftOrder($input: DraftOrderInput!) {
+  draftOrderCreate(input: $input) {
+    draftOrder {
+      id
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
+type CreateDraftOrderOperation = {
+  data: {
+    draftOrderCreate: {
+      draftOrder: {
+        id: string;
+      };
+      userErrors: Array<{
+        field: string;
+        message: string;
+      }>;
+    };
+  };
+  variables: {
+    input: {
+      email: string;
+      shippingLine: {
+        title: string;
+        price: number;
+      };
+      reserveInventoryUntil: string;
+      lineItems: {
+        variantId: string;
+        quantity: number;
+        appliedDiscount: {
+          value: number;
+          valueType: string;
+          title: string;
+        };
+      };
+    };
+  };
+};
+
+type CreateDraftOrderInput = {
+  email: string;
+  shippingLine: {
+    title: string;
+    price: number;
+  };
+  reserveInventoryUntil: string;
+  lineItems: {
+    variantId: string;
+    quantity: number;
+    appliedDiscount: {
+      value: number;
+      valueType: string;
+      title: string;
+    };
+  };
+};
+
+export async function createDraftOrder(
+  input: CreateDraftOrderInput
+): Promise<string> {
+  const response = await queryAdminApi<CreateDraftOrderOperation>(
+    createDraftOrderQuery,
+    {
+      input: {
+        email: input.email,
+        shippingLine: input.shippingLine,
+        reserveInventoryUntil: input.reserveInventoryUntil,
+        lineItems: input.lineItems,
+      },
+    }
+  );
+
+  const draftOrder = response.body.data.draftOrderCreate.draftOrder;
+
+  return draftOrder.id;
 }

@@ -8,10 +8,11 @@ import { z } from "zod";
 import { db } from "~/drizzle/config.server";
 import { drawSignups, draws } from "~/drizzle/schema.server";
 import { eq } from "drizzle-orm";
-import { isBefore, isAfter, isEqual, add } from "date-fns";
+import { isBefore, isAfter, isEqual, add, formatISO } from "date-fns";
 import {
   addTagsToCustomer,
   createCustomer,
+  createDraftOrder,
   getCustomer,
   getDraw,
 } from "~/utils/adminApi";
@@ -173,9 +174,9 @@ export const updatedDraw = client.defineJob({
   },
 });
 
-export const sendDrawStartedFlowTrigger = client.defineJob({
-  id: "send-draw-started-flow-trigger",
-  name: "Send Draw Started Flow Trigger",
+export const executePrizeDraw = client.defineJob({
+  id: "execute-prize-draw",
+  name: "Execute Prize Draw",
   version: "0.0.1",
   trigger: eventTrigger({
     name: "prize_draw.started",
@@ -184,9 +185,7 @@ export const sendDrawStartedFlowTrigger = client.defineJob({
     }),
   }),
   run: async (payload, io, ctx) => {
-    await io.logger.info(
-      `Send Draw Started Flow Trigger for ${payload.drawId}`
-    );
+    await io.logger.info(`Execute draw for ${payload.drawId}`);
 
     const draw = await io.runTask("fetch-draw", async (task) => {
       return await getDraw(payload.drawId);
@@ -208,6 +207,31 @@ export const sendDrawStartedFlowTrigger = client.defineJob({
     const winners = getRandomItems(customers, draw.numberAvailable);
 
     await io.logger.info(`Winners: ${JSON.stringify(winners)}`);
+
+    // create draft order for each winner
+    for (const winner of winners) {
+      await io.runTask("create-draft-order", async (task) => {
+        await createDraftOrder({
+          email: winner.email,
+          shippingLine: {
+            title: "Free Shipping",
+            price: 0,
+          },
+          reserveInventoryUntil: formatISO(
+            add(new Date(Date.now()), { days: 1 })
+          ),
+          lineItems: {
+            variantId: draw.variantId,
+            quantity: 1,
+            appliedDiscount: {
+              title: "PRIZE DRAW",
+              value: 100,
+              valueType: "PERCENTAGE",
+            },
+          },
+        });
+      });
+    }
 
     await io.logger.info(`Got draw: ${JSON.stringify(draw)}`);
   },
