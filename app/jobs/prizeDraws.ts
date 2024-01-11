@@ -303,14 +303,14 @@ export const addCustomer = client.defineJob({
       return await getCustomer(payload.email);
     });
 
-    await io.runTask("add-tags", async (task) => {
-      await addTagsToCustomer(customer, payload.tags);
-    });
-
     if (!customer) {
       await io.logger.info(`Customer not found: ${payload.email}`);
       customer = await io.runTask("create-customer", async (task) => {
         return await createCustomer(payload.email, payload.tags);
+      });
+    } else {
+      await io.runTask("add-tags", async (task) => {
+        await addTagsToCustomer(customer, payload.tags);
       });
     }
 
