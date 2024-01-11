@@ -152,7 +152,7 @@ export const updatedDraw = client.defineJob({
         {
           name: "prize_draw.started",
           payload: {
-            dropId: payload.id,
+            drawId: payload.id,
           },
         },
         {
