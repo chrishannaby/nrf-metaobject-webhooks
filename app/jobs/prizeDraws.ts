@@ -210,7 +210,7 @@ export const executePrizeDraw = client.defineJob({
 
     // create draft order for each winner
     for (const winner of winners) {
-      await io.runTask("create-draft-order", async (task) => {
+      await io.runTask(`create-draft-order ${winner.id}`, async (task) => {
         await createDraftOrder({
           email: winner.email,
           shippingLine: {
