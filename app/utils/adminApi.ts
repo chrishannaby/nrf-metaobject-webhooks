@@ -311,6 +311,7 @@ export async function executeFlowTrigger(
     }
   );
   const { data } = await response.json();
+  return data;
 }
 
 const updateKlaviyoListIdMutation = `
