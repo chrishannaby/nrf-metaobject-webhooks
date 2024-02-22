@@ -6,5 +6,6 @@ import { client } from "~/trigger.server";
 export * from "~/jobs/drops";
 export * from "~/jobs/prizeDraws";
 export * from "~/jobs/klayvio";
+export * from "~/jobs/draftOrders";
 
 export const { action } = createRemixRoute(client);

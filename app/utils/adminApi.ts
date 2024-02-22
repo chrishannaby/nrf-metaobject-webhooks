@@ -604,3 +604,37 @@ export async function createDraftOrder(
 
   return draftOrder.id;
 }
+
+const getDraftOrderQuery = `
+query getDraftOrder($id: ID!) {
+	draftOrder(id: $id) {
+		id
+		name
+		invoiceUrl
+	}
+}
+`;
+
+type GetDraftOrderOperation = {
+  data: {
+    draftOrder: {
+      id: string;
+      name: string;
+      invoiceUrl: string;
+    };
+  };
+  variables: {
+    id: string;
+  };
+};
+
+export async function getDraftOrder(draftOrderId: string) {
+  const response = await queryAdminApi<GetDraftOrderOperation>(
+    getDraftOrderQuery,
+    {
+      id: draftOrderId,
+    }
+  );
+
+  return response.body.data.draftOrder;
+}
