@@ -392,6 +392,9 @@ export const sendApprovalChangedFlowTrigger = client.defineJob({
         "Draft Order ID": payload.draftOrderId,
         "Auto Approve Threshold": 1000,
       });
+      await io.logger.info(
+        `Flow Trigger Response: ${JSON.stringify(repsonse)}`
+      );
       return repsonse;
     });
   },
