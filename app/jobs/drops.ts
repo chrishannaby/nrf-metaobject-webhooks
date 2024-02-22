@@ -371,3 +371,28 @@ export const sendDropEndedFlowTrigger = client.defineJob({
     });
   },
 });
+
+export const sendApprovalChangedFlowTrigger = client.defineJob({
+  id: "send-approval-changed-flow-trigger",
+  name: "Send Approval Changed Flow Trigger",
+  version: "0.0.1",
+  trigger: eventTrigger({
+    name: "approval.changed",
+    schema: z.object({
+      draftOrderId: z.string(),
+    }),
+  }),
+  run: async (payload, io, ctx) => {
+    await io.logger.info(
+      `Send Approval Changed Flow Trigger for ${payload.draftOrderId}`
+    );
+
+    await io.runTask("send-flow-trigger", async (task) => {
+      const repsonse = await executeFlowTrigger("approval-status-changed", {
+        "Draft Order ID": payload.draftOrderId,
+        "Auto Approve Threshold": 1000,
+      });
+      return repsonse;
+    });
+  },
+});

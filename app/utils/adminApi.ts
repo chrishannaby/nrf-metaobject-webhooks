@@ -263,18 +263,20 @@ export async function getDraw(drawId: string): Promise<{
   };
 }
 
-type FlowTriggerPayload = {
-  Drop: {
-    id: string;
-    name: string;
-    products: Array<{ productId: string }>;
-  };
-  Klaviyo?: {
-    listId: string;
-    templateId: string;
-    apiKey: string;
-  };
-};
+type FlowTriggerPayload =
+  | {
+      Drop: {
+        id: string;
+        name: string;
+        products: Array<{ productId: string }>;
+      };
+      Klaviyo?: {
+        listId: string;
+        templateId: string;
+        apiKey: string;
+      };
+    }
+  | { "Draft Order ID": string; "Auto Approve Threshold": number };
 
 const flowTriggerMutation = `
 mutation flowTriggerReceive($handle: String, $payload: JSON) {
