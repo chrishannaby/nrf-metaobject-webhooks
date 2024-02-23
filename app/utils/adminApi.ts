@@ -693,7 +693,7 @@ type UpdateDraftOrderOperation = {
   };
   variables: {
     input: {
-      id: string;
+      ownerId: string;
       input: { metafields: Array<{ id: string; value: string }> };
     };
   };
@@ -704,7 +704,7 @@ export async function updateDraftOrder(draftOrderId: string, status: string) {
     updateDraftOrderQuery,
     {
       input: {
-        id: draftOrderId,
+        ownerId: draftOrderId,
         input: {
           metafields: [
             {
