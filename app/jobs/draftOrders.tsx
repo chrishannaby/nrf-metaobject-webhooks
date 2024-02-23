@@ -108,6 +108,7 @@ export const orderUpdated = client.defineJob({
     draftOrders[payload] = newDraftOrder;
 
     if (
+      previousDraftOrder &&
       !previousDraftOrder?.readyForApproval &&
       newDraftOrder.readyForApproval
     ) {
