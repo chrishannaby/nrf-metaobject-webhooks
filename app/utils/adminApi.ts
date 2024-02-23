@@ -373,6 +373,16 @@ export function parseMetaobjectId(metaobjectId: string) {
   return match[1];
 }
 
+const draftOrderIdRegex = /^gid:\/\/shopify\/DraftOrder\/(\d+)$/;
+
+export function parseDraftOrderId(draftOrderId: string) {
+  const match = draftOrderId.match(draftOrderIdRegex);
+  if (!match) {
+    return null;
+  }
+  return match[1];
+}
+
 const getCustomerQuery = `
 query getCustomer($query: String!) {
   customers(first: 1, query: $query){
