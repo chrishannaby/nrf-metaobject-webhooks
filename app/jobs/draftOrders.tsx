@@ -66,7 +66,7 @@ export const approveOrder = client.defineJob({
   run: async (payload, io, ctx) => {
     await io.logger.info(`Approve draft order: ${payload.draftOrderId}`);
 
-    const draftOrder = await io.runTask("get-draw", async (task) => {
+    const draftOrder = await io.runTask("get-draft-order", async (task) => {
       return await getDraftOrder(payload.draftOrderId);
     });
 
