@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
       console.log(`Draft Order Updated: ${JSON.stringify(rawData.id)}`);
       await client.sendEvent({
         name: "draft_order.updated",
-        payload: rawData.id,
+        payload: `gid://shopify/DraftOrder/${rawData.id}`,
       });
       break;
     default:
