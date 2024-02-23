@@ -5,6 +5,7 @@ import {
   executeFlowTrigger,
   getDraftOrder,
   parseDraftOrderId,
+  updateDraftOrder,
 } from "~/utils/adminApi";
 import { approveSchema } from "~/routes/approve-order";
 
@@ -75,6 +76,10 @@ export const approveOrder = client.defineJob({
     }
 
     await io.logger.info(`Got draft order: ${JSON.stringify(draftOrder)}`);
+
+    await io.runTask("approve-draft-order", async (task) => {
+      await updateDraftOrder(payload.draftOrderId, "Approved");
+    });
   },
 });
 

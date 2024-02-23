@@ -663,3 +663,47 @@ export async function getDraftOrder(draftOrderId: string) {
 
   return response.body.data.draftOrder;
 }
+
+const updateDraftOrderQuery = `
+mutation updateDraftOrder($id: String; $status: String!) {
+	draftOrderUpdate(
+		id: $id
+		input: {
+			metafields: [{ namespace: "approval", key: "status", value: $status }]
+		}
+	) {
+		draftOrder {
+			id
+		}
+	}
+}
+`;
+
+type UpdateDraftOrderOperation = {
+  data: {
+    draftOrderUpdate: {
+      draftOrder: {
+        id: string;
+      };
+    };
+  };
+  variables: {
+    id: string;
+    status: string;
+  };
+};
+
+export async function updateDraftOrder(
+  draftOrderId: string,
+  status: string
+): Promise<void> {
+  const response = await queryAdminApi<UpdateDraftOrderOperation>(
+    updateDraftOrderQuery,
+    {
+      id: draftOrderId,
+      status,
+    }
+  );
+
+  return;
+}
