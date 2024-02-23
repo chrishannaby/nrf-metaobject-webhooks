@@ -701,6 +701,6 @@ export async function updateDraftOrder(draftOrderId: string, status: string) {
       status,
     }
   );
-  console.log("update draft order", response);
+  console.log("update draft order", response.body.data);
   return response;
 }
