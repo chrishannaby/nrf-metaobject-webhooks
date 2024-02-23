@@ -665,18 +665,18 @@ export async function getDraftOrder(draftOrderId: string) {
 }
 
 const updateDraftOrderQuery = `
-mutation updateDraftOrder($id: ID!, $status: String!) {
-	draftOrderUpdate(
-		id: $id
-		input: {
-			metafields: [{ namespace: "approval", key: "status", value: $status }]
-		}
-	) {
-		draftOrder {
-			id
-		}
-	}
+mutation updateDraftOrderMetafields($input: DraftOrderInput!, $ownerId: ID!) {
+  draftOrderUpdate(input: $input, id: $ownerId) {
+    draftOrder {
+      id
+    }
+    userErrors {
+      message
+      field
+    }
+  }
 }
+
 `;
 
 type UpdateDraftOrderOperation = {
@@ -685,11 +685,17 @@ type UpdateDraftOrderOperation = {
       draftOrder: {
         id: string;
       };
+      userErrors: Array<{
+        message: string;
+        field: string;
+      }>;
     };
   };
   variables: {
-    id: string;
-    status: string;
+    input: {
+      id: string;
+      input: { metafields: Array<{ id: string; value: string }> };
+    };
   };
 };
 
@@ -697,8 +703,17 @@ export async function updateDraftOrder(draftOrderId: string, status: string) {
   const response = await queryAdminApi<UpdateDraftOrderOperation>(
     updateDraftOrderQuery,
     {
-      id: draftOrderId,
-      status,
+      input: {
+        id: draftOrderId,
+        input: {
+          metafields: [
+            {
+              id: "gid://shopify/Metafield/33733584257046",
+              value: status,
+            },
+          ],
+        },
+      },
     }
   );
   console.log("update draft order", response.body.data);
