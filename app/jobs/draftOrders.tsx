@@ -140,5 +140,9 @@ export const readyForApproval = client.defineJob({
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(`Draft order ready to approve: ${payload}`);
+
+    await io.runTask("approve-draft-order", async (task) => {
+      await updateDraftOrder(payload, "Ready for Approval");
+    });
   },
 });
