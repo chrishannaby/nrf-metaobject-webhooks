@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
       console.log(rawData);
       await client.sendEvent({
         name: "draft_order.updated",
-        payload: rawData,
+        payload: rawData.id,
       });
       break;
     default:

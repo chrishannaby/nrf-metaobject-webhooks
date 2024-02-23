@@ -611,6 +611,15 @@ query getDraftOrder($id: ID!) {
 		id
 		name
 		invoiceUrl
+    readyForApproval: metafield(
+			key: "ready_for_approval"
+			namespace: "custom"
+		) {
+			value
+		}
+		status: metafield(key: "status", namespace: "approval") {
+			value
+		}
 	}
 }
 `;
@@ -621,6 +630,12 @@ type GetDraftOrderOperation = {
       id: string;
       name: string;
       invoiceUrl: string;
+      readyForApproval: {
+        value: string;
+      } | null;
+      status: {
+        value: string;
+      } | null;
     };
   };
   variables: {

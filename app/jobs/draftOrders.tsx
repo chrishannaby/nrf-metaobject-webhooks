@@ -4,6 +4,8 @@ import { z } from "zod";
 import { executeFlowTrigger, getDraftOrder } from "~/utils/adminApi";
 import { approveSchema } from "~/routes/approve-order";
 
+const draftOrders: Record<string, string> = {};
+
 export const sendApprovalChangedFlowTrigger = client.defineJob({
   id: "send-approval-changed-flow-trigger",
   name: "Send Approval Changed Flow Trigger",
@@ -18,6 +20,12 @@ export const sendApprovalChangedFlowTrigger = client.defineJob({
     await io.logger.info(
       `Send Approval Changed Flow Trigger for ${payload.draftOrderId}`
     );
+
+    const draftOrder = await io.runTask("get-draft-order", async (task) => {
+      return await getDraftOrder(payload.draftOrderId);
+    });
+
+    await io.logger.info(`Got draft order: ${JSON.stringify(draftOrder)}`);
 
     await io.runTask("send-flow-trigger", async (task) => {
       const repsonse = await executeFlowTrigger("approval-status-changed", {
@@ -53,5 +61,18 @@ export const approveOrder = client.defineJob({
     }
 
     await io.logger.info(`Got draft order: ${JSON.stringify(draftOrder)}`);
+  },
+});
+
+export const orderUpdated = client.defineJob({
+  id: "order-updated",
+  name: "Order Updated",
+  version: "0.0.1",
+  trigger: eventTrigger({
+    name: "draft_order.updated",
+    schema: z.string(),
+  }),
+  run: async (payload, io, ctx) => {
+    await io.logger.info(`Order Updated: ${JSON.stringify(payload)}`);
   },
 });
