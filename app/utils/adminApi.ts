@@ -693,10 +693,7 @@ type UpdateDraftOrderOperation = {
   };
 };
 
-export async function updateDraftOrder(
-  draftOrderId: string,
-  status: string
-): Promise<void> {
+export async function updateDraftOrder(draftOrderId: string, status: string) {
   const response = await queryAdminApi<UpdateDraftOrderOperation>(
     updateDraftOrderQuery,
     {
@@ -705,5 +702,5 @@ export async function updateDraftOrder(
     }
   );
   console.log("update draft order", response);
-  return;
+  return response;
 }
