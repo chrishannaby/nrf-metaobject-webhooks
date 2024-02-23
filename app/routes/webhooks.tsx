@@ -38,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
       break;
     case "draft_orders/update":
-      console.log(rawData);
+      console.log(`Draft Order Updated: ${JSON.stringify(rawData.id)}`);
       await client.sendEvent({
         name: "draft_order.updated",
         payload: rawData.id,
