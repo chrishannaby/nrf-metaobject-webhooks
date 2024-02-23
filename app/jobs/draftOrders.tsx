@@ -74,5 +74,11 @@ export const orderUpdated = client.defineJob({
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(`Order Updated: ${JSON.stringify(payload)}`);
+
+    const draftOrder = await io.runTask("get-draft-order", async (task) => {
+      return await getDraftOrder(payload);
+    });
+
+    await io.logger.info(`Got draft order: ${JSON.stringify(draftOrder)}`);
   },
 });
