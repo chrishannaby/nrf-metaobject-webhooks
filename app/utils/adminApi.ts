@@ -665,7 +665,7 @@ export async function getDraftOrder(draftOrderId: string) {
 }
 
 const updateDraftOrderQuery = `
-mutation updateDraftOrder($id: String, $status: String!) {
+mutation updateDraftOrder($id: ID, $status: String!) {
 	draftOrderUpdate(
 		id: $id
 		input: {
