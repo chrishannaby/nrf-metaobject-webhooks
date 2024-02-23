@@ -704,6 +704,6 @@ export async function updateDraftOrder(
       status,
     }
   );
-
+  console.log("update draft order", response);
   return;
 }
