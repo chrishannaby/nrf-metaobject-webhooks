@@ -37,6 +37,13 @@ export async function action({ request }: ActionFunctionArgs) {
         payload: data,
       });
       break;
+    case "draft_orders/update":
+      console.log(rawData);
+      await client.sendEvent({
+        name: "draft_order.updated",
+        payload: rawData,
+      });
+      break;
     default:
       console.log("unknown topic");
       break;
