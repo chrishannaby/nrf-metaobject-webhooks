@@ -450,6 +450,8 @@ type CreateCustomerOperation = {
     input: {
       email: string;
       tags: string;
+      firstName: string;
+      lastName: string;
       emailMarketingConsent: {
         marketingOptInLevel: string;
         marketingState: string;
@@ -460,7 +462,9 @@ type CreateCustomerOperation = {
 
 export async function createCustomer(
   email: string,
-  tags: string
+  tags: string,
+  firstName: string,
+  lastName: string
 ): Promise<string> {
   const response = await queryAdminApi<CreateCustomerOperation>(
     createCustomerQuery,
@@ -468,6 +472,8 @@ export async function createCustomer(
       input: {
         email,
         tags,
+        firstName,
+        lastName,
         emailMarketingConsent: {
           marketingOptInLevel: "CONFIRMED_OPT_IN",
           marketingState: "SUBSCRIBED",

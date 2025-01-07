@@ -20,4 +20,6 @@ export const drawSignups = sqliteTable("drawSignups", {
   id: integer("id").primaryKey(),
   drawId: text("drawId").notNull(),
   email: text("email").notNull().unique(),
+  firstName: text("firstName"),
+  lastName: text("lastName"),
 });

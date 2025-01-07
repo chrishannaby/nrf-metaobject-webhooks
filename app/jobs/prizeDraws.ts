@@ -246,7 +246,7 @@ export const registerForDraw = client.defineJob({
   }),
   run: async (payload, io, ctx) => {
     await io.logger.info(
-      `Register for Draw: ${payload.drawId} email: ${payload.email}`
+      `Register for Draw: ${payload.drawId} email: ${payload.email} firstName: ${payload.firstName} lastName: ${payload.lastName}`
     );
 
     const draw = await io.runTask("get-draw", async (task) => {
@@ -272,6 +272,8 @@ export const registerForDraw = client.defineJob({
         payload: {
           email: payload.email,
           tags: payload.drawId,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
         },
       });
     });
@@ -280,6 +282,8 @@ export const registerForDraw = client.defineJob({
       await db.insert(drawSignups).values({
         drawId: payload.drawId,
         email: payload.email,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
       });
     });
   },
@@ -294,10 +298,14 @@ export const addCustomer = client.defineJob({
     schema: z.object({
       email: z.string(),
       tags: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
     }),
   }),
   run: async (payload, io, ctx) => {
-    await io.logger.info(`Create Customer: email: ${payload.email}`);
+    await io.logger.info(
+      `Create Customer: email: ${payload.email} firstName: ${payload.firstName} lastName: ${payload.lastName}`
+    );
 
     let customer = await io.runTask("get-customer", async (task) => {
       return await getCustomer(payload.email);
@@ -306,7 +314,12 @@ export const addCustomer = client.defineJob({
     if (!customer) {
       await io.logger.info(`Customer not found: ${payload.email}`);
       customer = await io.runTask("create-customer", async (task) => {
-        return await createCustomer(payload.email, payload.tags);
+        return await createCustomer(
+          payload.email,
+          payload.tags,
+          payload.firstName,
+          payload.lastName
+        );
       });
     } else {
       await io.runTask("add-tags", async (task) => {

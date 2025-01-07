@@ -6,6 +6,8 @@ export const registerSchema = z.object({
   email: z.string().email(),
   drawId: z.string().nonempty(),
   secret: z.string().nonempty(),
+  firstName: z.string().nonempty(),
+  lastName: z.string().nonempty(),
 });
 
 function response(status: number, body: string) {
@@ -35,7 +37,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const body = await request.json();
   try {
-    const { email, drawId, secret } = registerSchema.parse(body);
+    const { email, drawId, secret, firstName, lastName } =
+      registerSchema.parse(body);
 
     await client.sendEvent({
       name: "prize_draw.register",
@@ -43,6 +46,8 @@ export async function action({ request }: ActionFunctionArgs) {
         email: email,
         drawId: drawId,
         secret: secret,
+        firstName: firstName,
+        lastName: lastName,
       },
     });
     return response(200, "OK");
