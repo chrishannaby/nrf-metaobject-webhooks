@@ -314,6 +314,45 @@ export async function executeFlowTrigger(
   return data;
 }
 
+const updateWinnersMutation = `
+mutation addWinners($id: ID!, $winners: String!) {
+  metaobjectUpdate(
+    id: $id
+    metaobject: { fields: [{key: "winners", value: $winners}]}
+  ) {
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
+type UpdateWinnersOperation = {
+  data: {
+    metaobjectUpdate: {
+      userErrors: Array<{ field: string; message: string }>;
+    };
+  };
+  variables: {
+    id: string;
+    winners: string;
+  };
+};
+
+export async function updateWinners(drawId: string, winners: string[]) {
+  const escapedWinners =
+    "[" + winners.map((name) => `\\"${name}\\"`).join(",") + "]";
+
+  const response = await queryAdminApi<UpdateWinnersOperation>(
+    updateWinnersMutation,
+    {
+      id: drawId,
+      winners: escapedWinners,
+    }
+  );
+}
+
 const updateKlaviyoListIdMutation = `
 mutation updateKlaviyoListId($id: ID!, $klaviyoListId: String!) {
 	metaobjectUpdate(

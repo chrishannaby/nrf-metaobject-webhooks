@@ -15,6 +15,7 @@ import {
   createDraftOrder,
   getCustomer,
   getDraw,
+  updateWinners,
 } from "~/utils/adminApi";
 import { registerSchema } from "~/routes/registerForDraw";
 
@@ -204,8 +205,14 @@ export const executePrizeDraw = client.defineJob({
     });
 
     const winners = getRandomItems(customers, draw.numberAvailable);
+    const winnersNames = winners.map(
+      (winner) => `${winner.firstName} ${winner.lastName}`
+    );
 
     await io.logger.info(`Winners: ${JSON.stringify(winners)}`);
+    await io.runTask("update-winners", async (task) => {
+      await updateWinners(payload.drawId, winnersNames);
+    });
 
     // create draft order for each winner
     for (const winner of winners) {
