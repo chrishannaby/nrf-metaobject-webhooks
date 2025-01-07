@@ -628,6 +628,7 @@ query getDraftOrder($id: ID!) {
 			value
 		}
 		status: metafield(key: "status", namespace: "approval") {
+      id
 			value
 		}
 	}
@@ -644,6 +645,7 @@ type GetDraftOrderOperation = {
         value: string;
       } | null;
       status: {
+        id: string;
         value: string;
       } | null;
     };
