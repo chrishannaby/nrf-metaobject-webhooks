@@ -8,8 +8,6 @@ import {
 
 export async function action({ request }: ActionFunctionArgs) {
   const body = await request.text();
-  console.log("body", body);
-  console.log("request", request);
   const hmacHeader = request.headers.get("X-Shopify-Hmac-SHA256") || "";
   if (!validateHmac(body, hmacHeader)) {
     return new Response("HMAC validation failed", { status: 401 });
